@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222.2 84% 4.9%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(222.2 84% 4.9%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(222.2 84% 4.9%);
+  --color-primary: hsl(221.2 83.2% 53.3%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  --color-secondary: hsl(210 40% 96.1%);
+  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --color-muted: hsl(210 40% 96.1%);
+  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
+  --color-accent: hsl(210 40% 96.1%);
+  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+  --color-border: hsl(214.3 31.8% 91.4%);
+  --color-input: hsl(214.3 31.8% 91.4%);
+  --color-ring: hsl(221.2 83.2% 53.3%);
+  --radius: 0.5rem;
+}
+
+* {
+  border-color: hsl(214.3 31.8% 91.4%);
+}
+
+body {
+  background-color: #fff;
+  color: hsl(222.2 84% 4.9%);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* FullCalendar customizations */
+.fc {
+  font-family: inherit;
+}
+.fc-theme-standard .fc-scrollgrid {
+  border-color: hsl(214.3 31.8% 91.4%);
+}
+.fc .fc-col-header-cell-cushion {
+  font-weight: 600;
+  color: hsl(222.2 84% 4.9%);
+}
+.fc .fc-timegrid-slot {
+  height: 3rem;
+}
+.fc-event {
+  border-radius: 4px !important;
+  border: none !important;
+  padding: 2px 4px !important;
+  cursor: pointer;
+}
+.fc .fc-button-primary {
+  background-color: hsl(221.2 83.2% 53.3%) !important;
+  border-color: hsl(221.2 83.2% 53.3%) !important;
+}
+.fc .fc-button-primary:hover {
+  opacity: 0.9;
+}
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: hsl(221.2 83.2% 53.3%) !important;
+  border-color: hsl(221.2 83.2% 53.3%) !important;
+  opacity: 0.8;
+}
