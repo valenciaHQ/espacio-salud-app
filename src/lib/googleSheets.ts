@@ -1,7 +1,7 @@
 import { format, parseISO } from 'date-fns'
 import type { Professional, Patient } from '@/types/app'
 
-const SPREADSHEET_ID = '1Mcg7IK2nJqvFT1iL7dQUcWMQHVdLrENdJPKr9IOyvJ4'
+const SPREADSHEET_ID = import.meta.env.VITE_SPREADSHEET_ID || '1Mcg7IK2nJqvFT1iL7dQUcWMQHVdLrENdJPKr9IOyvJ4'
 const API = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}`
 
 export const SHEET_TABS = {
@@ -236,5 +236,39 @@ export async function importPatientsFromSheet(token: string): Promise<SheetPatie
       phone: row[2] ?? '',
       coverage: row[3] ?? '',
       notes: row[4] ?? '',
+    }))
+}
+
+export type SheetAppointment = {
+  id: string
+  tipo: string
+  fecha: string
+  inicio: string
+  fin: string
+  consultorio_name: string
+  professional_name: string
+  patient_name: string
+  payment_status_raw: string
+  rental_duration_raw: string
+  notes: string
+}
+
+export async function importAppointmentsFromSheet(token: string): Promise<SheetAppointment[]> {
+  const values = await getValues(token, `${q(SHEET_TABS.turnos)}!A:K`)
+  return values
+    .slice(1)
+    .filter((row) => row[0] && row[0] !== 'ID')
+    .map((row) => ({
+      id: row[0] ?? '',
+      tipo: row[1] ?? '',
+      fecha: row[2] ?? '',
+      inicio: row[3] ?? '',
+      fin: row[4] ?? '',
+      consultorio_name: row[5] ?? '',
+      professional_name: row[6] ?? '',
+      patient_name: row[7] ?? '',
+      payment_status_raw: row[8] ?? '',
+      rental_duration_raw: row[9] ?? '',
+      notes: row[10] ?? '',
     }))
 }

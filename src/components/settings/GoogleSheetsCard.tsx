@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Download, Upload, LogOut, ExternalLink } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGoogleSheets } from '@/context/GoogleSheetsContext'
@@ -11,19 +12,27 @@ import {
   exportAppointments,
   importProfessionalsFromSheet,
   importPatientsFromSheet,
+  importAppointmentsFromSheet,
   type AppointmentSyncData,
 } from '@/lib/googleSheets'
 import { useProfessionals } from '@/hooks/useProfessionals'
 import { usePatients } from '@/hooks/usePatients'
 import { supabase } from '@/lib/supabase'
 
-const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/1Mcg7IK2nJqvFT1iL7dQUcWMQHVdLrENdJPKr9IOyvJ4'
+const SPREADSHEET_ID = import.meta.env.VITE_SPREADSHEET_ID || '1Mcg7IK2nJqvFT1iL7dQUcWMQHVdLrENdJPKr9IOyvJ4'
+const SPREADSHEET_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}`
 const HAS_CLIENT_ID = !!import.meta.env.VITE_GOOGLE_CLIENT_ID
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+function isUUID(s: string): boolean {
+  return UUID_RE.test(s)
+}
 
 export function GoogleSheetsCard() {
   const { token, isConnected, connect, disconnect } = useGoogleSheets()
   const { data: professionals = [], refetch: refetchProfessionals } = useProfessionals()
   const { data: patients = [], refetch: refetchPatients } = usePatients()
+  const qc = useQueryClient()
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
 
@@ -70,9 +79,10 @@ export function GoogleSheetsCard() {
     if (!token) return
     setImporting(true)
     try {
-      const [sheetProfs, sheetPats] = await Promise.all([
+      const [sheetProfs, sheetPats, sheetAppts] = await Promise.all([
         importProfessionalsFromSheet(token),
         importPatientsFromSheet(token),
+        importAppointmentsFromSheet(token),
       ])
 
       for (const p of sheetProfs) {
@@ -89,8 +99,54 @@ export function GoogleSheetsCard() {
         )
       }
 
+      // Build name→id lookup maps
+      const { data: consultorios } = await supabase.from('consultorios').select('id, name')
+      const consMap = Object.fromEntries((consultorios ?? []).map((c) => [c.name.toLowerCase(), c.id]))
+      const profMap = Object.fromEntries(sheetProfs.map((p) => [p.full_name.toLowerCase(), p.id]))
+      const patMap = Object.fromEntries(sheetPats.map((p) => [p.full_name.toLowerCase(), p.id]))
+
+      const VALID_DURATIONS = new Set(['1h', '4h', 'full_day'])
+      let skipped = 0
+      const apptRows: object[] = []
+
+      for (const a of sheetAppts) {
+        if (!isUUID(a.id) || !a.fecha || !a.inicio || !a.fin) { skipped++; continue }
+
+        const consultorio_id = consMap[a.consultorio_name.toLowerCase()]
+        const professional_id = profMap[a.professional_name.toLowerCase()]
+        if (!consultorio_id || !professional_id) { skipped++; continue }
+
+        const tipo: 'derivacion' | 'alquiler' = a.tipo.toLowerCase().includes('deriv') ? 'derivacion' : 'alquiler'
+        const patient_id = tipo === 'derivacion' ? (patMap[a.patient_name.toLowerCase()] ?? null) : null
+
+        const [day, month, year] = a.fecha.split('/')
+        const startIso = new Date(`${year}-${month}-${day}T${a.inicio}:00`).toISOString()
+        const endIso = new Date(`${year}-${month}-${day}T${a.fin}:00`).toISOString()
+
+        apptRows.push({
+          id: a.id,
+          type: tipo,
+          consultorio_id,
+          professional_id,
+          patient_id,
+          start_time: startIso,
+          end_time: endIso,
+          payment_status: a.payment_status_raw === 'Pagado' ? 'paid' : 'pending',
+          rental_duration: VALID_DURATIONS.has(a.rental_duration_raw) ? a.rental_duration_raw : null,
+          notes: a.notes || null,
+        })
+      }
+
+      if (apptRows.length > 0) {
+        const { error } = await supabase.from('appointments').upsert(apptRows, { onConflict: 'id' })
+        if (error) throw error
+      }
+
       await Promise.all([refetchProfessionals(), refetchPatients()])
-      toast.success(`Importados: ${sheetProfs.length} profesionales, ${sheetPats.length} pacientes`)
+      qc.invalidateQueries({ queryKey: ['appointments'] })
+
+      const skippedMsg = skipped > 0 ? `, ${skipped} turnos omitidos` : ''
+      toast.success(`Importados: ${sheetProfs.length} profesionales, ${sheetPats.length} pacientes, ${apptRows.length} turnos${skippedMsg}`)
     } catch (err) {
       toast.error('Error al importar: ' + (err instanceof Error ? err.message : 'desconocido'))
     } finally {
