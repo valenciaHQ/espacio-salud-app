@@ -66,3 +66,27 @@ body {
   border-color: hsl(221.2 83.2% 53.3%) !important;
   opacity: 0.8;
 }
+
+/* Mobile font size fixes */
+@media (max-width: 640px) {
+  .fc-toolbar-title {
+    font-size: 0.95rem !important;
+  }
+  .fc .fc-button {
+    font-size: 0.75rem !important;
+    padding: 0.2em 0.5em !important;
+  }
+  .fc .fc-col-header-cell-cushion {
+    font-size: 0.65rem;
+    padding: 2px 1px;
+  }
+  .fc .fc-timegrid-slot-label-cushion {
+    font-size: 0.65rem;
+  }
+  .fc .fc-timegrid-slot {
+    height: 2.5rem;
+  }
+  .fc .fc-resource-timeline-divider {
+    width: 2px;
+  }
+}

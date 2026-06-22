@@ -8,16 +8,31 @@ const browser = await chromium.launch({
   args: ['--no-sandbox', '--disable-setuid-sandbox', '--ignore-certificate-errors'],
 })
 
-const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
-page.on('console', msg => { if (msg.type() === 'error') console.log('[err]', msg.text().slice(0, 80)) })
+// Mobile viewport (iPhone 14)
+const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } })
+mobile.on('console', msg => { if (msg.type() === 'error') console.log('[err]', msg.text().slice(0, 80)) })
 
-await page.goto('http://localhost:5174/preview-settings')
-await page.waitForLoadState('networkidle')
-await page.waitForTimeout(600)
-await page.screenshot({ path: '/tmp/05-with-client-id.png', fullPage: true })
+await mobile.goto('http://localhost:5174/preview-cal')
+await mobile.waitForLoadState('networkidle')
+await mobile.waitForTimeout(1500)
+await mobile.screenshot({ path: '/tmp/mobile-calendar.png', fullPage: false })
+console.log('mobile-calendar.png: calendario en mobile')
 
-const text = await page.locator('body').innerText()
-console.log('Body:', text.slice(0, 600))
+// Get computed font sizes of key elements
+const fontSizes = await mobile.evaluate(() => {
+  const title = document.querySelector('.fc-toolbar-title')
+  const btn = document.querySelector('.fc-button')
+  const colHeader = document.querySelector('.fc-col-header-cell-cushion')
+  const timeSlot = document.querySelector('.fc-timegrid-slot-label-cushion')
+  const getFS = (el) => el ? getComputedStyle(el).fontSize : 'n/a'
+  return {
+    title: getFS(title),
+    button: getFS(btn),
+    colHeader: getFS(colHeader),
+    timeSlot: getFS(timeSlot),
+  }
+})
+console.log('Font sizes on mobile:', fontSizes)
 
 await browser.close()
-console.log('Done: /tmp/05-with-client-id.png')
+console.log('Done.')
