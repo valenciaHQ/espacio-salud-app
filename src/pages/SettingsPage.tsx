@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useConsultorios, useUpdateConsultorio } from '@/hooks/useConsultorios'
 import { useSettings, useUpdateOperatingHours, useUpdateBusinessName } from '@/hooks/useSettings'
+import { GoogleSheetsCard } from '@/components/settings/GoogleSheetsCard'
 
 export function SettingsPage() {
   const { data: settings, isLoading: settingsLoading } = useSettings()
@@ -113,6 +114,8 @@ export function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <GoogleSheetsCard />
 
       <Card>
         <CardHeader>

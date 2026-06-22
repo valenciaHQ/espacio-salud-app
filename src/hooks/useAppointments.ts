@@ -10,6 +10,9 @@ import {
   deleteAppointment,
 } from '@/services/appointments.service'
 import type { DerivacionFormData, AlquilerFormData } from '@/schemas/appointment.schema'
+import { useGoogleSheets } from '@/context/GoogleSheetsContext'
+import { syncAppointment, type AppointmentSyncData } from '@/lib/googleSheets'
+import type { Professional, Patient, Consultorio, Appointment } from '@/types/app'
 
 export function useAppointments(range: { start: Date; end: Date }) {
   return useQuery({
@@ -19,55 +22,109 @@ export function useAppointments(range: { start: Date; end: Date }) {
   })
 }
 
+function buildSyncData(appt: Appointment, qc: ReturnType<typeof useQueryClient>): AppointmentSyncData {
+  const profs = qc.getQueryData<Professional[]>(['professionals']) ?? []
+  const pats = qc.getQueryData<Patient[]>(['patients']) ?? []
+  const cons = qc.getQueryData<Consultorio[]>(['consultorios']) ?? []
+  return {
+    id: appt.id,
+    type: appt.type,
+    start_time: appt.start_time,
+    end_time: appt.end_time,
+    consultorio_name: cons.find((c) => c.id === appt.consultorio_id)?.name ?? '',
+    professional_name: profs.find((p) => p.id === appt.professional_id)?.full_name ?? '',
+    patient_name: pats.find((p) => p.id === appt.patient_id)?.full_name ?? '',
+    payment_status: appt.payment_status,
+    rental_duration: appt.rental_duration,
+    notes: appt.notes,
+  }
+}
+
 export function useCreateDerivacion() {
   const qc = useQueryClient()
+  const { token } = useGoogleSheets()
   return useMutation({
     mutationFn: (data: DerivacionFormData) => createDerivacion(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['appointments'] }),
+    onSuccess: (appt) => {
+      qc.invalidateQueries({ queryKey: ['appointments'] })
+      if (token) syncAppointment(token, buildSyncData(appt, qc), 'upsert').catch(console.warn)
+    },
   })
 }
 
 export function useCreateAlquiler() {
   const qc = useQueryClient()
+  const { token } = useGoogleSheets()
   return useMutation({
     mutationFn: ({ data, dayEnd }: { data: AlquilerFormData; dayEnd: string }) =>
       createAlquiler(data, dayEnd),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['appointments'] }),
+    onSuccess: (appt) => {
+      qc.invalidateQueries({ queryKey: ['appointments'] })
+      if (token) syncAppointment(token, buildSyncData(appt, qc), 'upsert').catch(console.warn)
+    },
   })
 }
 
 export function useUpdateDerivacion() {
   const qc = useQueryClient()
+  const { token } = useGoogleSheets()
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: DerivacionFormData }) =>
       updateDerivacion(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['appointments'] }),
+    onSuccess: (appt) => {
+      qc.invalidateQueries({ queryKey: ['appointments'] })
+      if (token) syncAppointment(token, buildSyncData(appt, qc), 'upsert').catch(console.warn)
+    },
   })
 }
 
 export function useUpdateAlquiler() {
   const qc = useQueryClient()
+  const { token } = useGoogleSheets()
   return useMutation({
     mutationFn: ({ id, data, dayEnd }: { id: string; data: AlquilerFormData; dayEnd: string }) =>
       updateAlquiler(id, data, dayEnd),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['appointments'] }),
+    onSuccess: (appt) => {
+      qc.invalidateQueries({ queryKey: ['appointments'] })
+      if (token) syncAppointment(token, buildSyncData(appt, qc), 'upsert').catch(console.warn)
+    },
   })
 }
 
 export function useUpdatePayment() {
   const qc = useQueryClient()
+  const { token } = useGoogleSheets()
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: 'pending' | 'paid' }) =>
       updateAppointmentPayment(id, status),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['appointments'] }),
+    onSuccess: (appt) => {
+      qc.invalidateQueries({ queryKey: ['appointments'] })
+      if (token) syncAppointment(token, buildSyncData(appt, qc), 'upsert').catch(console.warn)
+    },
   })
 }
 
 export function useDeleteAppointment() {
   const qc = useQueryClient()
+  const { token } = useGoogleSheets()
   return useMutation({
     mutationFn: (id: string) => deleteAppointment(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['appointments'] }),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['appointments'] })
+      if (token) {
+        const stub: AppointmentSyncData = {
+          id,
+          type: 'derivacion',
+          start_time: '',
+          end_time: '',
+          consultorio_name: '',
+          professional_name: '',
+          patient_name: '',
+          payment_status: 'pending',
+        }
+        syncAppointment(token, stub, 'delete').catch(console.warn)
+      }
+    },
   })
 }
 
