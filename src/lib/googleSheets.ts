@@ -31,6 +31,11 @@ function q(tab: string): string {
   return `'${tab}'`
 }
 
+// The Sheets API needs ' ! : unencoded in range path segments — only encode spaces and other special chars
+function encodeRange(range: string): string {
+  return encodeURIComponent(range).replace(/%27/g, "'").replace(/%21/g, '!').replace(/%3A/g, ':')
+}
+
 async function req(token: string, path: string, init: RequestInit = {}) {
   const res = await fetch(`${API}${path}`, {
     ...init,
@@ -48,19 +53,19 @@ async function req(token: string, path: string, init: RequestInit = {}) {
 }
 
 async function getValues(token: string, range: string): Promise<string[][]> {
-  const data = await req(token, `/values/${encodeURIComponent(range)}`)
+  const data = await req(token, `/values/${encodeRange(range)}`)
   return (data.values as string[][] | undefined) ?? []
 }
 
 async function setValues(token: string, range: string, values: string[][]) {
-  await req(token, `/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`, {
+  await req(token, `/values/${encodeRange(range)}?valueInputOption=USER_ENTERED`, {
     method: 'PUT',
     body: JSON.stringify({ values }),
   })
 }
 
 async function appendValues(token: string, range: string, values: string[][]) {
-  await req(token, `/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
+  await req(token, `/values/${encodeRange(range)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
     method: 'POST',
     body: JSON.stringify({ values }),
   })
