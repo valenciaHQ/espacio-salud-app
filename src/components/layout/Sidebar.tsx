@@ -14,7 +14,7 @@ export function Sidebar() {
   const { signOut } = useAuth()
 
   return (
-    <aside className="flex h-screen w-56 flex-col border-r border-gray-200 bg-white">
+    <aside className="hidden sm:flex h-screen w-56 flex-col border-r border-gray-200 bg-white">
       <div className="flex h-14 items-center border-b border-gray-200 px-4">
         <span className="text-base font-semibold text-blue-600">Espacio Salud</span>
       </div>

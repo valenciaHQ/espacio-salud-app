@@ -52,15 +52,15 @@ export function CalendarPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold text-gray-900">Agenda</h1>
+      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-3 py-2 sm:px-6 sm:py-3">
+        <div className="flex items-center gap-2">
+          <h1 className="text-base font-semibold text-gray-900 sm:text-lg">Agenda</h1>
           {isFetching && (
             <span className="text-xs text-gray-400">Actualizando...</span>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3 text-xs text-gray-500">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden sm:flex items-center gap-3 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <span className="inline-block h-2 w-2 rounded-full bg-blue-500" />
               Derivación
@@ -80,7 +80,7 @@ export function CalendarPage() {
           </div>
           <Button size="sm" onClick={handleNewClick}>
             <Plus className="h-4 w-4" />
-            Nuevo turno
+            <span className="hidden sm:inline">Nuevo turno</span>
           </Button>
         </div>
       </div>

@@ -22,16 +22,19 @@ export function ProfessionalsPage() {
     }
   }
 
+  const openEdit = (p: Professional) => { setEditing(p); setModalOpen(true) }
+  const openNew = () => { setEditing(undefined); setModalOpen(true) }
+
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="p-4 sm:p-6">
+      <div className="mb-4 flex items-center justify-between sm:mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Profesionales</h1>
-          <p className="text-sm text-gray-500 mt-1">Psicólogos que alquilan o reciben derivaciones</p>
+          <h1 className="text-xl font-semibold text-gray-900 sm:text-2xl">Profesionales</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Psicólogos que alquilan o reciben derivaciones</p>
         </div>
-        <Button onClick={() => { setEditing(undefined); setModalOpen(true) }}>
+        <Button size="sm" onClick={openNew}>
           <Plus className="h-4 w-4" />
-          Nuevo profesional
+          <span className="hidden sm:inline">Nuevo profesional</span>
         </Button>
       </div>
 
@@ -43,50 +46,85 @@ export function ProfessionalsPage() {
           <p className="text-sm mt-1">Creá el primero haciendo click en "Nuevo profesional".</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Nombre</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Especialidad</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Matrícula</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Teléfono</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {professionals.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{p.full_name}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.specialty ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.license_num ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.phone ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.email ?? '—'}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => { setEditing(p); setModalOpen(true) }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleDelete(p)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
+        <>
+          {/* Mobile cards */}
+          <div className="flex flex-col gap-3 sm:hidden">
+            {professionals.map((p) => (
+              <div key={p.id} className="rounded-lg border border-gray-200 bg-white p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{p.full_name}</p>
+                    {(p.specialty || p.license_num) && (
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        {[p.specialty, p.license_num].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+                    {(p.phone || p.email) && (
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        {[p.phone, p.email].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleDelete(p)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Nombre</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Especialidad</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Matrícula</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Teléfono</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {professionals.map((p) => (
+                  <tr key={p.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-medium text-gray-900">{p.full_name}</td>
+                    <td className="px-4 py-3 text-gray-600">{p.specialty ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{p.license_num ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{p.phone ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{p.email ?? '—'}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDelete(p)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       <ProfessionalModal

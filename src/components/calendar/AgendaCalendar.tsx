@@ -5,6 +5,7 @@ import type { DateSelectArg, EventClickArg, DatesSetArg, EventContentArg } from 
 import { AppointmentEvent } from './AppointmentEvent'
 import type { Consultorio } from '@/types/app'
 import type { AppointmentWithRelations } from '@/types/app'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface Props {
   consultorios: Consultorio[]
@@ -25,6 +26,8 @@ export function AgendaCalendar({
   onEventClick,
   onDatesChange,
 }: Props) {
+  const isMobile = useIsMobile()
+
   const resources = consultorios.map((c) => ({
     id: c.id,
     title: c.name,
@@ -58,15 +61,15 @@ export function AgendaCalendar({
   const renderEvent = (info: EventContentArg) => <AppointmentEvent eventInfo={info} />
 
   return (
-    <div className="h-full p-4">
+    <div className="h-full p-1 sm:p-4">
       <FullCalendar
         plugins={[resourceTimeGridPlugin, interactionPlugin]}
         initialView="resourceTimeGridDay"
-        headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: 'resourceTimeGridDay,resourceTimeGridWeek',
-        }}
+        headerToolbar={
+          isMobile
+            ? { left: 'prev,next', center: 'title', right: 'today' }
+            : { left: 'prev,next today', center: 'title', right: 'resourceTimeGridDay,resourceTimeGridWeek' }
+        }
         buttonText={{
           today: 'Hoy',
           day: 'Día',
