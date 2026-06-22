@@ -8,12 +8,14 @@ type GoogleSheetsCtx = {
   disconnect: () => void
 }
 
-const Ctx = createContext<GoogleSheetsCtx>({
+const defaultCtx: GoogleSheetsCtx = {
   token: null,
   isConnected: false,
   connect: () => {},
   disconnect: () => {},
-})
+}
+
+const Ctx = createContext<GoogleSheetsCtx>(defaultCtx)
 
 const TOKEN_KEY = 'gs_token'
 const EXPIRY_KEY = 'gs_expiry'
@@ -28,6 +30,7 @@ function loadStoredToken(): string | null {
   }
 }
 
+// Used when VITE_GOOGLE_CLIENT_ID is set — must be inside GoogleOAuthProvider
 export function GoogleSheetsProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(loadStoredToken)
 
@@ -50,7 +53,6 @@ export function GoogleSheetsProvider({ children }: { children: React.ReactNode }
     scope: 'https://www.googleapis.com/auth/spreadsheets',
   })
 
-  // Auto-expire
   useEffect(() => {
     if (!token) return
     const exp = Number(localStorage.getItem(EXPIRY_KEY) ?? 0)
@@ -67,6 +69,12 @@ export function GoogleSheetsProvider({ children }: { children: React.ReactNode }
   )
 }
 
+// Used when VITE_GOOGLE_CLIENT_ID is NOT set — no-op, no hooks from @react-oauth/google
+export function NoopGoogleSheetsProvider({ children }: { children: React.ReactNode }) {
+  return <Ctx.Provider value={defaultCtx}>{children}</Ctx.Provider>
+}
+
 export function useGoogleSheets() {
   return useContext(Ctx)
 }
+

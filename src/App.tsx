@@ -10,7 +10,7 @@ import { CalendarPage } from '@/pages/CalendarPage'
 import { ProfessionalsPage } from '@/pages/ProfessionalsPage'
 import { PatientsPage } from '@/pages/PatientsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
-import { GoogleSheetsProvider } from '@/context/GoogleSheetsContext'
+import { GoogleSheetsProvider, NoopGoogleSheetsProvider } from '@/context/GoogleSheetsContext'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
 
@@ -47,14 +47,20 @@ function AppRoutes() {
 }
 
 export default function App() {
-  return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID ?? ''}>
-      <QueryClientProvider client={queryClient}>
-        <GoogleSheetsProvider>
-          <AppRoutes />
-          <Toaster richColors position="top-right" />
-        </GoogleSheetsProvider>
-      </QueryClientProvider>
-    </GoogleOAuthProvider>
+  const core = (
+    <QueryClientProvider client={queryClient}>
+      <AppRoutes />
+      <Toaster richColors position="top-right" />
+    </QueryClientProvider>
   )
+
+  if (GOOGLE_CLIENT_ID) {
+    return (
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <GoogleSheetsProvider>{core}</GoogleSheetsProvider>
+      </GoogleOAuthProvider>
+    )
+  }
+
+  return <NoopGoogleSheetsProvider>{core}</NoopGoogleSheetsProvider>
 }
