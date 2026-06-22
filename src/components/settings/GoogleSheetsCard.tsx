@@ -18,6 +18,7 @@ import {
 import { useProfessionals } from '@/hooks/useProfessionals'
 import { usePatients } from '@/hooks/usePatients'
 import { supabase } from '@/lib/supabase'
+import type { AppointmentInsert } from '@/types/app'
 
 const SPREADSHEET_ID = import.meta.env.VITE_SPREADSHEET_ID || '1Mcg7IK2nJqvFT1iL7dQUcWMQHVdLrENdJPKr9IOyvJ4'
 const SPREADSHEET_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}`
@@ -107,7 +108,7 @@ export function GoogleSheetsCard() {
 
       const VALID_DURATIONS = new Set(['1h', '4h', 'full_day'])
       let skipped = 0
-      const apptRows: object[] = []
+      const apptRows: AppointmentInsert[] = []
 
       for (const a of sheetAppts) {
         if (!isUUID(a.id) || !a.fecha || !a.inicio || !a.fin) { skipped++; continue }
