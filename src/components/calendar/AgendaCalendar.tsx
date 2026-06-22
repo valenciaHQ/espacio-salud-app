@@ -65,11 +65,13 @@ export function AgendaCalendar({
       <FullCalendar
         plugins={[resourceTimeGridPlugin, interactionPlugin]}
         initialView="resourceTimeGridDay"
+        schedulerLicenseKey="CC-Attribution-NonCommercial-NoDerivatives"
         headerToolbar={
           isMobile
             ? { left: 'prev,next', center: 'title', right: 'today' }
             : { left: 'prev,next today', center: 'title', right: 'resourceTimeGridDay,resourceTimeGridWeek' }
         }
+        titleFormat={isMobile ? { year: 'numeric', month: 'short', day: 'numeric' } : undefined}
         buttonText={{
           today: 'Hoy',
           day: 'Día',
