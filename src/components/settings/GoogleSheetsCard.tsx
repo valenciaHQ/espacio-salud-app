@@ -70,6 +70,8 @@ export function GoogleSheetsCard() {
     if (!token) return
     setImporting(true)
     try {
+      await initSheets(token)
+
       const [sheetProfs, sheetPats] = await Promise.all([
         importProfessionalsFromSheet(token),
         importPatientsFromSheet(token),
@@ -90,7 +92,11 @@ export function GoogleSheetsCard() {
       }
 
       await Promise.all([refetchProfessionals(), refetchPatients()])
-      toast.success(`Importados: ${sheetProfs.length} profesionales, ${sheetPats.length} pacientes`)
+      if (sheetProfs.length === 0 && sheetPats.length === 0) {
+        toast.info('No hay datos en la planilla. Exportá primero para sincronizar.')
+      } else {
+        toast.success(`Importados: ${sheetProfs.length} profesionales, ${sheetPats.length} pacientes`)
+      }
     } catch (err) {
       toast.error('Error al importar: ' + (err instanceof Error ? err.message : 'desconocido'))
     } finally {
