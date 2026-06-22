@@ -47,20 +47,14 @@ function AppRoutes() {
 }
 
 export default function App() {
-  const inner = (
-    <QueryClientProvider client={queryClient}>
-      <GoogleSheetsProvider>
-        <AppRoutes />
-        <Toaster richColors position="top-right" />
-      </GoogleSheetsProvider>
-    </QueryClientProvider>
-  )
-
-  if (!GOOGLE_CLIENT_ID) return inner
-
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      {inner}
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID ?? ''}>
+      <QueryClientProvider client={queryClient}>
+        <GoogleSheetsProvider>
+          <AppRoutes />
+          <Toaster richColors position="top-right" />
+        </GoogleSheetsProvider>
+      </QueryClientProvider>
     </GoogleOAuthProvider>
   )
 }

@@ -18,6 +18,7 @@ import { usePatients } from '@/hooks/usePatients'
 import { supabase } from '@/lib/supabase'
 
 const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/1Mcg7IK2nJqvFT1iL7dQUcWMQHVdLrENdJPKr9IOyvJ4'
+const HAS_CLIENT_ID = !!import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 export function GoogleSheetsCard() {
   const { token, isConnected, connect, disconnect } = useGoogleSheets()
@@ -109,7 +110,11 @@ export function GoogleSheetsCard() {
           <strong>App-Pacientes</strong> en tu spreadsheet existente.
         </p>
 
-        {!isConnected ? (
+        {!HAS_CLIENT_ID ? (
+          <p className="text-sm text-amber-600 bg-amber-50 rounded-md px-3 py-2">
+            Configurá <code className="font-mono">VITE_GOOGLE_CLIENT_ID</code> en Vercel para habilitar la sincronización.
+          </p>
+        ) : !isConnected ? (
           <Button onClick={connect}>
             Conectar con Google
           </Button>
