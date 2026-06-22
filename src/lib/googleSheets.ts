@@ -26,6 +26,11 @@ function lastCol(tab: string): string {
   return String.fromCharCode(64 + (COL_WIDTHS[tab] ?? 1))
 }
 
+// Wrap sheet name in single quotes so hyphens are handled correctly by the API
+function q(tab: string): string {
+  return `'${tab}'`
+}
+
 async function req(token: string, path: string, init: RequestInit = {}) {
   const res = await fetch(`${API}${path}`, {
     ...init,
@@ -74,7 +79,7 @@ async function getSheetTitles(token: string): Promise<string[]> {
 }
 
 async function findRow(token: string, tab: string, id: string): Promise<number | null> {
-  const values = await getValues(token, `${tab}!A:A`)
+  const values = await getValues(token, `${q(tab)}!A:A`)
   const idx = values.findIndex((row) => row[0] === id)
   return idx === -1 ? null : idx + 1
 }
@@ -86,9 +91,9 @@ export async function initSheets(token: string) {
     await batchUpdate(token, toAdd.map((title) => ({ addSheet: { properties: { title } } })))
   }
   for (const [tab, headers] of Object.entries(HEADERS)) {
-    const existing = await getValues(token, `${tab}!A1:A1`)
+    const existing = await getValues(token, `${q(tab)}!A1:A1`)
     if (!existing.length || existing[0][0] !== 'ID') {
-      await setValues(token, `${tab}!1:1`, [headers])
+      await setValues(token, `${q(tab)}!1:1`, [headers])
     }
   }
 }
@@ -105,19 +110,19 @@ export async function syncProfessional(token: string, p: Professional, op: 'upse
   const cols = COL_WIDTHS[tab]
   const row = await findRow(token, tab, p.id)
   if (op === 'delete') {
-    if (row) await setValues(token, `${tab}!A${row}:${lc}${row}`, [Array(cols).fill('')])
+    if (row) await setValues(token, `${q(tab)}!A${row}:${lc}${row}`, [Array(cols).fill('')])
     return
   }
   const data = [professionalToRow(p)]
-  if (row) await setValues(token, `${tab}!A${row}:${lc}${row}`, data)
-  else await appendValues(token, `${tab}!A:${lc}`, data)
+  if (row) await setValues(token, `${q(tab)}!A${row}:${lc}${row}`, data)
+  else await appendValues(token, `${q(tab)}!A:${lc}`, data)
 }
 
 export async function exportProfessionals(token: string, professionals: Professional[]) {
   const tab = SHEET_TABS.profesionales
   const lc = lastCol(tab)
   const rows = [HEADERS[tab], ...professionals.map(professionalToRow)]
-  await setValues(token, `${tab}!A1:${lc}${rows.length}`, rows)
+  await setValues(token, `${q(tab)}!A1:${lc}${rows.length}`, rows)
 }
 
 // --- Pacientes ---
@@ -132,19 +137,19 @@ export async function syncPatient(token: string, p: Patient, op: 'upsert' | 'del
   const cols = COL_WIDTHS[tab]
   const row = await findRow(token, tab, p.id)
   if (op === 'delete') {
-    if (row) await setValues(token, `${tab}!A${row}:${lc}${row}`, [Array(cols).fill('')])
+    if (row) await setValues(token, `${q(tab)}!A${row}:${lc}${row}`, [Array(cols).fill('')])
     return
   }
   const data = [patientToRow(p)]
-  if (row) await setValues(token, `${tab}!A${row}:${lc}${row}`, data)
-  else await appendValues(token, `${tab}!A:${lc}`, data)
+  if (row) await setValues(token, `${q(tab)}!A${row}:${lc}${row}`, data)
+  else await appendValues(token, `${q(tab)}!A:${lc}`, data)
 }
 
 export async function exportPatients(token: string, patients: Patient[]) {
   const tab = SHEET_TABS.pacientes
   const lc = lastCol(tab)
   const rows = [HEADERS[tab], ...patients.map(patientToRow)]
-  await setValues(token, `${tab}!A1:${lc}${rows.length}`, rows)
+  await setValues(token, `${q(tab)}!A1:${lc}${rows.length}`, rows)
 }
 
 // --- Turnos ---
@@ -184,19 +189,19 @@ export async function syncAppointment(token: string, a: AppointmentSyncData, op:
   const cols = COL_WIDTHS[tab]
   const row = await findRow(token, tab, a.id)
   if (op === 'delete') {
-    if (row) await setValues(token, `${tab}!A${row}:${lc}${row}`, [Array(cols).fill('')])
+    if (row) await setValues(token, `${q(tab)}!A${row}:${lc}${row}`, [Array(cols).fill('')])
     return
   }
   const data = [appointmentToRow(a)]
-  if (row) await setValues(token, `${tab}!A${row}:${lc}${row}`, data)
-  else await appendValues(token, `${tab}!A:${lc}`, data)
+  if (row) await setValues(token, `${q(tab)}!A${row}:${lc}${row}`, data)
+  else await appendValues(token, `${q(tab)}!A:${lc}`, data)
 }
 
 export async function exportAppointments(token: string, appointments: AppointmentSyncData[]) {
   const tab = SHEET_TABS.turnos
   const lc = lastCol(tab)
   const rows = [HEADERS[tab], ...appointments.map(appointmentToRow)]
-  await setValues(token, `${tab}!A1:${lc}${rows.length}`, rows)
+  await setValues(token, `${q(tab)}!A1:${lc}${rows.length}`, rows)
 }
 
 // --- Import from Sheets ---
@@ -205,7 +210,7 @@ export type SheetProfessional = { id: string; full_name: string; phone: string; 
 export type SheetPatient = { id: string; full_name: string; phone: string; coverage: string; notes: string }
 
 export async function importProfessionalsFromSheet(token: string): Promise<SheetProfessional[]> {
-  const values = await getValues(token, `${SHEET_TABS.profesionales}!A:G`)
+  const values = await getValues(token, `${q(SHEET_TABS.profesionales)}!A:G`)
   return values
     .slice(1)
     .filter((row) => row[0] && row[0] !== 'ID')
@@ -221,7 +226,7 @@ export async function importProfessionalsFromSheet(token: string): Promise<Sheet
 }
 
 export async function importPatientsFromSheet(token: string): Promise<SheetPatient[]> {
-  const values = await getValues(token, `${SHEET_TABS.pacientes}!A:E`)
+  const values = await getValues(token, `${q(SHEET_TABS.pacientes)}!A:E`)
   return values
     .slice(1)
     .filter((row) => row[0] && row[0] !== 'ID')
