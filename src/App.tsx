@@ -11,6 +11,7 @@ import { ProfessionalsPage } from '@/pages/ProfessionalsPage'
 import { PatientsPage } from '@/pages/PatientsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { GoogleSheetsProvider, NoopGoogleSheetsProvider } from '@/context/GoogleSheetsContext'
+import { GoogleCalendarProvider, NoopGoogleCalendarProvider } from '@/context/GoogleCalendarContext'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
 
@@ -57,10 +58,16 @@ export default function App() {
   if (GOOGLE_CLIENT_ID) {
     return (
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <GoogleSheetsProvider>{core}</GoogleSheetsProvider>
+        <GoogleSheetsProvider>
+          <GoogleCalendarProvider>{core}</GoogleCalendarProvider>
+        </GoogleSheetsProvider>
       </GoogleOAuthProvider>
     )
   }
 
-  return <NoopGoogleSheetsProvider>{core}</NoopGoogleSheetsProvider>
+  return (
+    <NoopGoogleSheetsProvider>
+      <NoopGoogleCalendarProvider>{core}</NoopGoogleCalendarProvider>
+    </NoopGoogleSheetsProvider>
+  )
 }

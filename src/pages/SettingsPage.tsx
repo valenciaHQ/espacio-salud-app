@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useConsultorios, useUpdateConsultorio } from '@/hooks/useConsultorios'
 import { useSettings, useUpdateOperatingHours, useUpdateBusinessName } from '@/hooks/useSettings'
 import { GoogleSheetsCard } from '@/components/settings/GoogleSheetsCard'
+import { GoogleCalendarCard } from '@/components/settings/GoogleCalendarCard'
 
 export function SettingsPage() {
   const { data: settings, isLoading: settingsLoading } = useSettings()
@@ -116,6 +117,8 @@ export function SettingsPage() {
       </Card>
 
       <GoogleSheetsCard />
+
+      <GoogleCalendarCard />
 
       <Card>
         <CardHeader>
