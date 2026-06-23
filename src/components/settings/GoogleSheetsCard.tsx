@@ -133,7 +133,7 @@ export function GoogleSheetsCard() {
           start_time: startIso,
           end_time: endIso,
           payment_status: a.payment_status_raw === 'Pagado' ? 'paid' : 'pending',
-          rental_duration: VALID_DURATIONS.has(a.rental_duration_raw) ? a.rental_duration_raw : null,
+          rental_duration: VALID_DURATIONS.has(a.rental_duration_raw) ? (a.rental_duration_raw as '1h' | '4h' | 'full_day') : null,
           notes: a.notes || null,
         })
       }
