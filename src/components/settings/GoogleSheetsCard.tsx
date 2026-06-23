@@ -102,9 +102,9 @@ export function GoogleSheetsCard() {
 
       // Build name→id lookup maps
       const { data: consultorios } = await supabase.from('consultorios').select('id, name')
-      const consMap = Object.fromEntries((consultorios ?? []).map((c) => [c.name.toLowerCase(), c.id]))
-      const profMap = Object.fromEntries(sheetProfs.map((p) => [p.full_name.toLowerCase(), p.id]))
-      const patMap = Object.fromEntries(sheetPats.map((p) => [p.full_name.toLowerCase(), p.id]))
+      const consMap = Object.fromEntries((consultorios ?? []).map((c) => [c.name.toLowerCase().trim(), c.id]))
+      const profMap = Object.fromEntries(sheetProfs.map((p) => [p.full_name.toLowerCase().trim(), p.id]))
+      const patMap = Object.fromEntries(sheetPats.map((p) => [p.full_name.toLowerCase().trim(), p.id]))
 
       const VALID_DURATIONS = new Set(['1h', '4h', 'full_day'])
       let skipped = 0
@@ -113,12 +113,15 @@ export function GoogleSheetsCard() {
       for (const a of sheetAppts) {
         if (!isUUID(a.id) || !a.fecha || !a.inicio || !a.fin) { skipped++; continue }
 
-        const consultorio_id = consMap[a.consultorio_name.toLowerCase()]
-        const professional_id = profMap[a.professional_name.toLowerCase()]
-        if (!consultorio_id || !professional_id) { skipped++; continue }
+        const consultorio_id = consMap[a.consultorio_name.toLowerCase().trim()]
+        const professional_id = profMap[a.professional_name.toLowerCase().trim()]
+        if (!consultorio_id || !professional_id) {
+          console.warn(`Turno ${a.id} omitido — consultorio: "${a.consultorio_name}" prof: "${a.professional_name}"`)
+          skipped++; continue
+        }
 
         const tipo: 'derivacion' | 'alquiler' = a.tipo.toLowerCase().includes('deriv') ? 'derivacion' : 'alquiler'
-        const patient_id = tipo === 'derivacion' ? (patMap[a.patient_name.toLowerCase()] ?? null) : null
+        const patient_id = tipo === 'derivacion' ? (patMap[a.patient_name.toLowerCase().trim()] ?? null) : null
 
         const [day, month, year] = a.fecha.split('/')
         const startIso = new Date(`${year}-${month}-${day}T${a.inicio}:00`).toISOString()

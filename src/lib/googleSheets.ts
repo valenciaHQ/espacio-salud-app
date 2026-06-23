@@ -215,33 +215,41 @@ export type SheetProfessional = { id: string; full_name: string; phone: string; 
 export type SheetPatient = { id: string; full_name: string; phone: string; coverage: string; notes: string }
 
 export async function importProfessionalsFromSheet(token: string): Promise<SheetProfessional[]> {
-  const values = await getValues(token, `${q(SHEET_TABS.profesionales)}!A:G`)
-  return values
-    .slice(1)
-    .filter((row) => row[0] && row[0] !== 'ID')
-    .map((row) => ({
-      id: row[0] ?? '',
-      full_name: row[1] ?? '',
-      phone: row[2] ?? '',
-      email: row[3] ?? '',
-      specialty: row[4] ?? '',
-      license_num: row[5] ?? '',
-      notes: row[6] ?? '',
-    }))
+  try {
+    const values = await getValues(token, `${q(SHEET_TABS.profesionales)}!A:G`)
+    return values
+      .slice(1)
+      .filter((row) => row[0] && row[0] !== 'ID')
+      .map((row) => ({
+        id: row[0] ?? '',
+        full_name: row[1] ?? '',
+        phone: row[2] ?? '',
+        email: row[3] ?? '',
+        specialty: row[4] ?? '',
+        license_num: row[5] ?? '',
+        notes: row[6] ?? '',
+      }))
+  } catch {
+    return []
+  }
 }
 
 export async function importPatientsFromSheet(token: string): Promise<SheetPatient[]> {
-  const values = await getValues(token, `${q(SHEET_TABS.pacientes)}!A:E`)
-  return values
-    .slice(1)
-    .filter((row) => row[0] && row[0] !== 'ID')
-    .map((row) => ({
-      id: row[0] ?? '',
-      full_name: row[1] ?? '',
-      phone: row[2] ?? '',
-      coverage: row[3] ?? '',
-      notes: row[4] ?? '',
-    }))
+  try {
+    const values = await getValues(token, `${q(SHEET_TABS.pacientes)}!A:E`)
+    return values
+      .slice(1)
+      .filter((row) => row[0] && row[0] !== 'ID')
+      .map((row) => ({
+        id: row[0] ?? '',
+        full_name: row[1] ?? '',
+        phone: row[2] ?? '',
+        coverage: row[3] ?? '',
+        notes: row[4] ?? '',
+      }))
+  } catch {
+    return []
+  }
 }
 
 export type SheetAppointment = {
@@ -259,21 +267,25 @@ export type SheetAppointment = {
 }
 
 export async function importAppointmentsFromSheet(token: string): Promise<SheetAppointment[]> {
-  const values = await getValues(token, `${q(SHEET_TABS.turnos)}!A:K`)
-  return values
-    .slice(1)
-    .filter((row) => row[0] && row[0] !== 'ID')
-    .map((row) => ({
-      id: row[0] ?? '',
-      tipo: row[1] ?? '',
-      fecha: row[2] ?? '',
-      inicio: row[3] ?? '',
-      fin: row[4] ?? '',
-      consultorio_name: row[5] ?? '',
-      professional_name: row[6] ?? '',
-      patient_name: row[7] ?? '',
-      payment_status_raw: row[8] ?? '',
-      rental_duration_raw: row[9] ?? '',
-      notes: row[10] ?? '',
-    }))
+  try {
+    const values = await getValues(token, `${q(SHEET_TABS.turnos)}!A:K`)
+    return values
+      .slice(1)
+      .filter((row) => row[0] && row[0] !== 'ID')
+      .map((row) => ({
+        id: row[0] ?? '',
+        tipo: row[1] ?? '',
+        fecha: row[2] ?? '',
+        inicio: row[3] ?? '',
+        fin: row[4] ?? '',
+        consultorio_name: row[5] ?? '',
+        professional_name: row[6] ?? '',
+        patient_name: row[7] ?? '',
+        payment_status_raw: row[8] ?? '',
+        rental_duration_raw: row[9] ?? '',
+        notes: row[10] ?? '',
+      }))
+  } catch {
+    return []
+  }
 }
